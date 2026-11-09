@@ -13,6 +13,9 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 // ---------- helpers ----------
+// GET /books is open during levels 3-4 and becomes protected once the first
+// book has been deleted (end of level 4) or a token has been issued (level 5).
+let protectActive = false;
 const b64 = (s) => Buffer.from(s).toString('base64url');
 const sign = (data) => crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
 
@@ -30,6 +33,7 @@ function verifyToken(token) {
   catch { return false; }
 }
 function requireAuth(req, res, next) {
+  if (!protectActive) return next();
   const m = (req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
   if (!m || !verifyToken(m[1])) return res.status(401).json({ error: 'Unauthorized: missing or invalid token' });
   next();
@@ -49,6 +53,7 @@ app.post('/auth/token', (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   const token = createToken(username);
+  protectActive = true;
   res.status(200).json({ token, access_token: token, token_type: 'Bearer', expires_in: 86400 });
 });
 
@@ -117,6 +122,7 @@ app.delete('/books/:id', (req, res) => {
   const i = books.findIndex((b) => String(b.id) === req.params.id);
   if (i === -1) return res.status(404).json({ error: 'Book not found' });
   const [removed] = books.splice(i, 1);
+  protectActive = true;
   if (DELETE_STATUS === 204) return res.status(204).end();
   res.status(DELETE_STATUS).json({ message: 'Book deleted', book: removed });
 });
