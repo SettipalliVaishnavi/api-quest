@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 const SECRET = process.env.TOKEN_SECRET || 'api-quest-dev-secret';
 // auto  = GET /books becomes protected after the first token is issued (works for every level in order)
 // true  = always protected, false = never protected
-const PROTECT_BOOKS = (process.env.PROTECT_BOOKS || 'auto').toLowerCase();
+const PROTECT_BOOKS = (process.env.PROTECT_BOOKS || 'true').toLowerCase();
 const DELETE_STATUS = parseInt(process.env.DELETE_STATUS || '204', 10);
 const PAGINATION_ENVELOPE = process.env.PAGINATION_ENVELOPE === 'true';
 
@@ -69,14 +69,14 @@ function validateBook(body, partial = false) {
 }
 
 // Level 3 + 6: create, list (filter + paginate), read
-app.post('/books', (req, res) => {
-  const err = validateBook(req.body);
-  if (err) return res.status(400).json({ error: err });
-  const { title, author, year } = req.body;
-  const book = { id: nextId++, title: title.trim(), author: author.trim() };
-  if (year !== undefined) book.year = year;
-  books.push(book);
-  res.status(201).json(book);
+app.post('/auth/token', (req, res) => {
+  const { username, password } = req.body || {};
+  if (username !== 'admin' || password !== 'password') {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  const token = createToken(username);
+  tokenIssued = true;
+  res.status(200).json({ token, access_token: token, token_type: 'Bearer', expires_in: 86400 });
 });
 
 app.get('/books', requireAuth, (req, res) => {
