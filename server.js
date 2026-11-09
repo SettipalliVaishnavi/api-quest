@@ -104,4 +104,29 @@ app.get('/books/:id', (req, res) => {
 });
 
 // Level 4: update & delete
-app.put('/books/:id', (req, res) =>
+app.put('/books/:id', (req, res) => {
+  const book = books.find((b) => String(b.id) === req.params.id);
+  if (!book) return res.status(404).json({ error: 'Book not found' });
+  const err = validateBook(req.body, true);
+  if (err) return res.status(400).json({ error: err });
+  for (const k of ['title', 'author', 'year']) if (k in req.body) book[k] = typeof req.body[k] === 'string' ? req.body[k].trim() : req.body[k];
+  res.json(book);
+});
+
+app.delete('/books/:id', (req, res) => {
+  const i = books.findIndex((b) => String(b.id) === req.params.id);
+  if (i === -1) return res.status(404).json({ error: 'Book not found' });
+  const [removed] = books.splice(i, 1);
+  if (DELETE_STATUS === 204) return res.status(204).end();
+  res.status(DELETE_STATUS).json({ message: 'Book deleted', book: removed });
+});
+
+// ---------- Level 7: error handling ----------
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON body' });
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+app.listen(PORT, () => console.log(`API Quest listening on port ${PORT}`));
