@@ -1,9 +1,0 @@
-{
-  "name": "api-quest",
-  "version": "1.0.0",
-  "description": "Desent Solutions API Quest - all 8 levels",
-  "main": "server.js",
-  "scripts": { "start": "node server.js", "test": "bash test.sh" },
-  "engines": { "node": ">=18" },
-  "dependencies": { "cors": "^2.8.5", "express": "^4.19.2" }
-}

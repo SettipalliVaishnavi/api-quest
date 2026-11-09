@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: api-quest
-    runtime: node
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: PROTECT_BOOKS
-        value: auto
