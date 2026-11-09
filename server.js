@@ -41,7 +41,10 @@ function requireAuth(req, res, next) {
 const isStr = (v) => typeof v === 'string' && v.trim().length > 0;
 
 // ---------- Level 1: Ping ----------
-app.get('/ping', (req, res) => res.status(200).json({ success: true, message: 'pong' }));
+app.get('/ping', (req, res) => {
+  protectActive = false; // a new quest run starts with /ping: reopen GET /books for level 3
+  res.status(200).json({ success: true, message: 'pong' });
+});
 
 // ---------- Level 2: Echo ----------
 app.post('/echo', (req, res) => res.status(200).json(req.body === undefined ? {} : req.body));
